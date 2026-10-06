@@ -34,7 +34,7 @@ targets:
             properties:
                 CFBundlePackageType: "XPC!"
                 NSExtension:
-                NSExtensionPointIdentifier: com.apple.widgetkit-extension
+                    NSExtensionPointIdentifier: com.apple.widgetkit-extension
         settings:
         base:
             CODE_SIGNING_ALLOWED: "YES"
