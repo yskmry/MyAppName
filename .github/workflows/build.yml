@@ -1,42 +1,52 @@
 name: macOS CI Build
 
 on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+    push:
+        branches: [main]
+    pull_request:
+        branches: [main]
 
 jobs:
-  build:
-    runs-on: macos-15
+    build:
+        runs-on: macos-15
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
 
-      - name: Install XcodeGen
-        run: brew install xcodegen
+            - name: Install XcodeGen
+              run: brew install xcodegen
 
-      - name: Generate Xcode Project
-        run: xcodegen generate
+            - name: Generate Xcode Project
+              run: xcodegen generate
 
-      - name: Build App
-        run: |
-          xcodebuild build \
-            -project MyAppName.xcodeproj \
-            -scheme MyAppName \
-            -sdk macosx \
-            -configuration Debug \
-            -derivedDataPath ./build \
-            CODE_SIGN_IDENTITY="-" \
-            CODE_SIGN_STYLE=Manual \
-            DEVELOPMENT_TEAM=""
+            - name: List Schemes
+              run: xcodebuild -project MyAppName.xcodeproj -list
 
-      - name: Verify Signature
-        run: codesign --verify --verbose=2 ./build/Build/Products/Debug/MyAppName.app
+            - name: Build App
+              run: |
+                  xcodebuild build \
+                    -project MyAppName.xcodeproj \
+                    -scheme MyAppName \
+                    -sdk macosx \
+                    -configuration Debug \
+                    -derivedDataPath ./build \
+                    CODE_SIGN_IDENTITY="-" \
+                    CODE_SIGN_STYLE=Manual \
+                    DEVELOPMENT_TEAM="" \
+                    | tee build.log
 
-      - name: Upload Build Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: MyAppName-MacNative
-          path: ./build/Build/Products/Debug/MyAppName.app
+            - name: Debug Build Output
+              run: |
+                  echo "=== Build directory ==="
+                  ls -la ./build/Build/Products/Debug/ || echo "Directory not found"
+                  echo "=== App bundle ==="
+                  find ./build/Build/Products/Debug/MyAppName.app -type f 2>/dev/null || echo "App not found"
+                  echo "=== Binary ==="
+                  file ./build/Build/Products/Debug/MyAppName.app/Contents/MacOS/MyAppName 2>/dev/null || echo "Binary not found"
+
+            - name: Upload Build Artifact
+              uses: actions/upload-artifact@v4
+              with:
+                  name: MyAppName-MacNative
+                  path: ./build/Build/Products/Debug/MyAppName.app
