@@ -1,31 +1,38 @@
 name: iOS CI
 
 on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+    push:
+        branches: [main]
+    pull_request:
+        branches: [main]
 
 jobs:
-  build:
-    runs-on: macos-15
+    build:
+        runs-on: macos-15
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
 
-      - name: Install XcodeGen
-        run: brew install xcodegen
+            - name: Install XcodeGen
+              run: brew install xcodegen
 
-      - name: Generate Xcode Project
-        run: xcodegen generate
+            - name: Generate Xcode Project
+              run: xcodegen generate
 
-      - name: Test Build
-        run: |
-          xcodebuild build \
-            -project MyAppName.xcodeproj \
-            -scheme MyAppName \
-            -sdk iphonesimulator \
-            -configuration Debug \
-            CODE_SIGNING_ALLOWED=NO \
-            CODE_SIGNING_REQUIRED=NO
+            - name: Test Build
+              run: |
+                  xcodebuild build \
+                    -project MyAppName.xcodeproj \
+                    -scheme MyAppName \
+                    -sdk iphonesimulator \
+                    -configuration Debug \
+                    CODE_SIGNING_ALLOWED=NO \
+                    CODE_SIGNING_REQUIRED=NO
+
+            # 👇 ここから追加：ビルドされた成果物 (.app) を保存する
+            - name: Upload Build Artifact
+              uses: actions/upload-artifact@v4
+              with:
+                  name: MyAppName-AppleSilicon
+                  path: /Users/runner/Library/Developer/Xcode/DerivedData/MyAppName-*/Build/Products/Debug-iphonesimulator/MyAppName.app
