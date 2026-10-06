@@ -30,11 +30,11 @@ targets:
         sources:
             - MyWidget
         info:
-        path: MyWidget/Info.plist
-        properties:
-            CFBundlePackageType: "XPC!"
-            NSExtension:
-            NSExtensionPointIdentifier: com.apple.widgetkit-extension
+            path: MyWidget/Info.plist
+            properties:
+                CFBundlePackageType: "XPC!"
+                NSExtension:
+                NSExtensionPointIdentifier: com.apple.widgetkit-extension
         settings:
         base:
             CODE_SIGNING_ALLOWED: "YES"
