@@ -1,8 +1,7 @@
 name: MyAppName
 options:
-    bundleIdPrefix: com.example
+    bundleIdPrefix: com.example.MyAppName # 👈 プレフィックスをアプリ名まで含める
 targets:
-    # 1. メインアプリのターゲット
     MyAppName:
         type: application
         platform: macOS
@@ -11,9 +10,8 @@ targets:
             - MyApp
         info:
             path: MyApp/Info.plist
-        # 👇 ウィジェットをアプリの依存関係（内包するパーツ）として追加
         dependencies:
-            - target: MyWidget
+            - target: MyAppNameWidget # 👈 ターゲット名を一工夫する
         settings:
             base:
                 CODE_SIGNING_ALLOWED: "NO"
@@ -22,9 +20,9 @@ targets:
                 ARCHS: "arm64"
                 ONLY_ACTIVE_ARCH: "NO"
 
-    # 2. 👇 新しく追加するウィジェットのターゲット
-    MyWidget:
-        type: app-extension # 拡張機能（ウィジェット）を指定
+    # 👇 ターゲット名を変更（これで自動生成されるIDが com.example.MyAppName.MyAppNameWidget になります）
+    MyAppNameWidget:
+        type: app-extension
         platform: macOS
         deploymentTarget: "15.0"
         sources:
@@ -33,7 +31,6 @@ targets:
             path: MyWidget/Info.plist
         settings:
             base:
-                PRODUCT_BUNDLE_IDENTIFIER: com.example.MyAppName.MyWidget
                 CODE_SIGNING_ALLOWED: "NO"
                 CODE_SIGNING_REQUIRED: "NO"
                 CODE_SIGNING_IDENTITY: ""
