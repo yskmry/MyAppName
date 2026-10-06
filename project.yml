@@ -2,17 +2,38 @@ name: MyAppName
 options:
     bundleIdPrefix: com.example
 targets:
+    # 1. メインアプリのターゲット
     MyAppName:
         type: application
-        # 👇 platformを macOS に変更
         platform: macOS
         deploymentTarget: "15.0"
         sources:
             - MyApp
         info:
             path: MyApp/Info.plist
+        # 👇 ウィジェットをアプリの依存関係（内包するパーツ）として追加
+        dependencies:
+            - target: MyWidget
         settings:
             base:
+                CODE_SIGNING_ALLOWED: "NO"
+                CODE_SIGNING_REQUIRED: "NO"
+                CODE_SIGNING_IDENTITY: ""
+                ARCHS: "arm64"
+                ONLY_ACTIVE_ARCH: "NO"
+
+    # 2. 👇 新しく追加するウィジェットのターゲット
+    MyWidget:
+        type: app-extension # 拡張機能（ウィジェット）を指定
+        platform: macOS
+        deploymentTarget: "15.0"
+        sources:
+            - MyWidget
+        info:
+            path: MyWidget/Info.plist
+        settings:
+            base:
+                PRODUCT_BUNDLE_IDENTIFIER: com.example.MyAppName.MyWidget
                 CODE_SIGNING_ALLOWED: "NO"
                 CODE_SIGNING_REQUIRED: "NO"
                 CODE_SIGNING_IDENTITY: ""
