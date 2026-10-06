@@ -1,6 +1,6 @@
 name: MyAppName
 options:
-    bundleIdPrefix: com.example # 👈 Keep prefix generic. Final ID will be com.example.MyAppName
+    bundleIdPrefix: com.example
     deploymentTarget:
         macOS: "15.0"
 
@@ -14,24 +14,14 @@ targets:
             path: MyApp/Info.plist
         dependencies:
             - target: MyAppNameWidget
-
         settings:
             base:
-                # ✅ ENABLE SIGNING
                 CODE_SIGNING_ALLOWED: "YES"
                 CODE_SIGNING_REQUIRED: "YES"
-
-                # ✅ USE YOUR LOCAL CERTIFICATE
-                CODE_SIGN_IDENTITY: "MyLocalDevCert"
-
-                # ✅ NO TEAM NEEDED FOR PRIVATE USE
+                CODE_SIGN_IDENTITY: "MyLocalDev"
                 DEVELOPMENT_TEAM: ""
-
                 ARCHS: "arm64"
                 ONLY_ACTIVE_ARCH: "NO"
-
-                # Optional: Disable Sandbox for easier private testing
-                OTHER_SWIFT_FLAGS: "-D DEBUG"
 
     MyAppNameWidget:
         type: app-extension
@@ -42,10 +32,9 @@ targets:
             path: MyWidget/Info.plist
         settings:
             base:
-                # ✅ ENABLE SIGNING FOR WIDGET TOO
                 CODE_SIGNING_ALLOWED: "YES"
                 CODE_SIGNING_REQUIRED: "YES"
-                CODE_SIGN_IDENTITY: "MyLocalDevCert"
+                CODE_SIGN_IDENTITY: "MyLocalDev"
                 DEVELOPMENT_TEAM: ""
                 ARCHS: "arm64"
                 ONLY_ACTIVE_ARCH: "NO"

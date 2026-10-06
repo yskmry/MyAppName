@@ -20,8 +20,37 @@ jobs:
             - name: Generate Xcode Project
               run: xcodegen generate
 
-            - name: List Schemes
-              run: xcodebuild -project MyAppName.xcodeproj -list
+            - name: Import Certificate
+              env:
+                  CERT_BASE64: ${{ secrets.MAC_CERT_BASE64 }}
+                  KEY_BASE64: ${{ secrets.MAC_KEY_BASE64 }}
+              run: |
+                  # Decode cert and key
+                  echo "$CERT_BASE64" | base64 --decode > /tmp/cert.pem
+                  echo "$KEY_BASE64" | base64 --decode > /tmp/key.pem
+
+                  # Create build keychain
+                  KEYCHAIN_PASSWORD="build123"
+                  security create-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
+                  security default-keychain -s build.keychain
+                  security unlock-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
+                  security set-keychain-settings -t 3600 build.keychain
+
+                  # Import
+                  security import /tmp/cert.pem -k build.keychain -T /usr/bin/codesign
+                  security import /tmp/key.pem -k build.keychain -T /usr/bin/codesign
+
+                  # Allow codesign access
+                  security set-key-partition-list \
+                    -S apple-tool:,apple:,codesign: \
+                    -s -k "$KEYCHAIN_PASSWORD" build.keychain
+
+                  # Trust system-wide
+                  sudo security add-trusted-cert -d -r trustRoot \
+                    -k /Library/Keychains/System.keychain /tmp/cert.pem
+
+                  # Verify
+                  security find-identity -p codesigning build.keychain
 
             - name: Build App
               run: |
@@ -31,19 +60,15 @@ jobs:
                     -sdk macosx \
                     -configuration Debug \
                     -derivedDataPath ./build \
-                    CODE_SIGN_IDENTITY="-" \
+                    CODE_SIGN_IDENTITY="MyLocalDev" \
                     CODE_SIGN_STYLE=Manual \
                     DEVELOPMENT_TEAM="" \
-                    | tee build.log
+                    OTHER_CODE_SIGN_FLAGS="--keychain build.keychain"
 
-            - name: Debug Build Output
+            - name: Verify Signature
               run: |
-                  echo "=== Build directory ==="
-                  ls -la ./build/Build/Products/Debug/ || echo "Directory not found"
-                  echo "=== App bundle ==="
-                  find ./build/Build/Products/Debug/MyAppName.app -type f 2>/dev/null || echo "App not found"
-                  echo "=== Binary ==="
-                  file ./build/Build/Products/Debug/MyAppName.app/Contents/MacOS/MyAppName 2>/dev/null || echo "Binary not found"
+                  codesign -dvvv ./build/Build/Products/Debug/MyAppName.app 2>&1 | grep -E "Authority|Signature|flags"
+                  codesign -dvvv ./build/Build/Products/Debug/MyAppName.app/Contents/PlugIns/MyAppNameWidget.appex 2>&1 | grep -E "Authority|Signature|flags"
 
             - name: Upload Build Artifact
               uses: actions/upload-artifact@v4
