@@ -1,15 +1,17 @@
 name: MyAppName
 options:
-  bundleIdPrefix: com.example
+    bundleIdPrefix: com.example
 targets:
-  MyAppName:
-    type: application
-    platform: iOS
-    deploymentTarget: "17.0"
-    sources:
-      - MyApp
-    settings:
-      base:
-        CODE_SIGNING_ALLOWED: "NO"
-        CODE_SIGNING_REQUIRED: "NO"
-        CODE_SIGNING_IDENTITY: ""
+    MyAppName:
+        type: application
+        platform: iOS
+        deploymentTarget: "17.0"
+        sources:
+            - MyApp
+        settings:
+            base:
+                CODE_SIGNING_ALLOWED: "NO"
+                CODE_SIGNING_REQUIRED: "NO"
+                CODE_SIGNING_IDENTITY: ""
+                # 👇 この行を追加（XcodeにInfo.plistを自動生成させます）
+                GENERATE_INFOPLIST: "YES"
