@@ -18,7 +18,7 @@ targets:
             base:
                 CODE_SIGNING_ALLOWED: "YES"
                 CODE_SIGNING_REQUIRED: "YES"
-                CODE_SIGN_IDENTITY: "MyLocalDev"
+                CODE_SIGN_IDENTITY: "MyLocalSign"
                 DEVELOPMENT_TEAM: ""
                 ARCHS: "arm64"
                 ONLY_ACTIVE_ARCH: "NO"
@@ -34,7 +34,7 @@ targets:
             base:
                 CODE_SIGNING_ALLOWED: "YES"
                 CODE_SIGNING_REQUIRED: "YES"
-                CODE_SIGN_IDENTITY: "MyLocalDev"
+                CODE_SIGN_IDENTITY: "MyLocalSign"
                 DEVELOPMENT_TEAM: ""
                 ARCHS: "arm64"
                 ONLY_ACTIVE_ARCH: "NO"
