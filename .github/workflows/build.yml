@@ -25,14 +25,14 @@ jobs:
                   xcodebuild build \
                     -project MyAppName.xcodeproj \
                     -scheme MyAppName \
-                    -sdk iphonesimulator \
+                    -sdk macosx \
                     -configuration Debug \
                     CODE_SIGNING_ALLOWED=NO \
                     CODE_SIGNING_REQUIRED=NO
 
-            # 👇 ここから追加：ビルドされた成果物 (.app) を保存する
             - name: Upload Build Artifact
               uses: actions/upload-artifact@v4
               with:
-                  name: MyAppName-AppleSilicon
-                  path: /Users/runner/Library/Developer/Xcode/DerivedData/MyAppName-*/Build/Products/Debug-iphonesimulator/MyAppName.app
+                  name: MyAppName-MacNative
+                  # 👇 保存パスを macosx 用に変更
+                  path: /Users/runner/Library/Developer/Xcode/DerivedData/MyAppName-*/Build/Products/Debug/MyAppName.app

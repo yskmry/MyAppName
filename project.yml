@@ -4,17 +4,17 @@ options:
 targets:
     MyAppName:
         type: application
-        platform: iOS
+        # 👇 platformを macOS に変更
+        platform: macOS
         deploymentTarget: "15.0"
         sources:
             - MyApp
         info:
-            path: MyApp/Info.plist # 明示的にファイルを指定
+            path: MyApp/Info.plist
         settings:
             base:
                 CODE_SIGNING_ALLOWED: "NO"
                 CODE_SIGNING_REQUIRED: "NO"
                 CODE_SIGNING_IDENTITY: ""
-                # 👇 ターゲットを Apple Silicon (arm64) のみに限定
                 ARCHS: "arm64"
                 ONLY_ACTIVE_ARCH: "NO"
