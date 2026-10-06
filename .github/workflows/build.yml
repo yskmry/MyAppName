@@ -1,69 +1,73 @@
 name: macOS CI Build
 
 on:
-    push:
-        branches: [main]
-    pull_request:
-        branches: [main]
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
 
 jobs:
-    build:
-        runs-on: macos-15
+  build:
+    runs-on: macos-15
 
-        steps:
-            - name: Checkout code
-              uses: actions/checkout@v4
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-            - name: Install XcodeGen
-              run: brew install xcodegen
+      - name: Install XcodeGen
+        run: brew install xcodegen
 
-            - name: Generate Xcode Project
-              run: xcodegen generate
+      - name: Generate Xcode Project
+        run: xcodegen generate
 
-            # ✅ STEP 1: Setup Code Signing (Robust Version)
-            - name: Setup Code Signing
-              run: |
-                  # 1. Create a temporary keychain
-                  security create-keychain -p "" build.keychain
+      # ✅ STEP 1: Setup Code Signing (Non-Interactive)
+      - name: Setup Code Signing
+        run: |
+          # 1. Create a temporary keychain with a known password
+          KEYCHAIN_PASSWORD="temp123"
+          security create-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
+          
+          # 2. Set it as default and unlock
+          security default-keychain -s build.keychain
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
+          
+          # 3. Generate cert
+          openssl req -x509 -newkey rsa:2048 -keyout /tmp/key.pem -out /tmp/cert.pem -days 365 -nodes -subj "/CN=MyLocalDevCert"
+          
+          # 4. Import cert and key (Use -T to allow codesign access)
+          security import /tmp/cert.pem -k build.keychain -P "" -T /usr/bin/codesign
+          security import /tmp/key.pem -k build.keychain -P "" -T /usr/bin/codesign
+          
+          # 5. Set partition list (CRITICAL: Use the password here)
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" build.keychain
+          
+          # 6. Trust the cert
+          security add-trusted-cert -d -r trustRoot -k build.keychain /tmp/cert.pem
+          
+          # 7. Verify the identity exists
+          security find-identity -p -s "MyLocalDevCert" build.keychain
 
-                  # 2. Set it as the default and unlock it
-                  security default-keychain -s build.keychain
-                  security unlock-keychain -p "" build.keychain
+      # ✅ STEP 2: Build with Signing Enabled
+      - name: Build App
+        run: |
+          xcodebuild build \
+            -project MyAppName.xcodeproj \
+            -scheme MyAppName \
+            -sdk macosx \
+            -configuration Debug \
+            -derivedDataPath ./build \
+            CODE_SIGN_IDENTITY="MyLocalDevCert" \
+            CODE_SIGN_STYLE=Manual \
+            DEVELOPMENT_TEAM="" \
+            OTHER_CODE_SIGN_FLAGS="--keychain build.keychain"
 
-                  # 3. Generate a self-signed cert
-                  openssl req -x509 -newkey rsa:2048 -keyout /tmp/key.pem -out /tmp/cert.pem -days 365 -nodes -subj "/CN=MyLocalDevCert"
+      # ✅ STEP 3: Verify Signature
+      - name: Verify Signature
+        run: codesign --verify --verbose=2 ./build/Build/Products/Debug/MyAppName.app
 
-                  # 4. Import cert and key
-                  security import /tmp/cert.pem -k build.keychain -T /usr/bin/codesign
-                  security import /tmp/key.pem -k build.keychain -T /usr/bin/codesign
-
-                  # 5. CRITICAL: Allow codesign to access the key without prompting
-                  security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "" build.keychain
-
-                  # 6. Trust the certificate
-                  security add-trusted-cert -d -r trustRoot -k build.keychain /tmp/cert.pem
-
-            # ✅ STEP 2: Build with Signing Enabled
-            - name: Build App
-              run: |
-                  xcodebuild build \
-                    -project MyAppName.xcodeproj \
-                    -scheme MyAppName \
-                    -sdk macosx \
-                    -configuration Debug \
-                    -derivedDataPath ./build \
-                    CODE_SIGN_IDENTITY="MyLocalDevCert" \
-                    CODE_SIGN_STYLE=Manual \
-                    DEVELOPMENT_TEAM="" \
-                    OTHER_CODE_SIGN_FLAGS="--keychain build.keychain"
-
-            # ✅ STEP 3: Verify Signature
-            - name: Verify Signature
-              run: codesign --verify --verbose=2 ./build/Build/Products/Debug/MyAppName.app
-
-            # ✅ STEP 4: Upload Artifact
-            - name: Upload Build Artifact
-              uses: actions/upload-artifact@v4
-              with:
-                  name: MyAppName-MacNative
-                  path: ./build/Build/Products/Debug/MyAppName.app
+      # ✅ STEP 4: Upload Artifact
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: MyAppName-MacNative
+          path: ./build/Build/Products/Debug/MyAppName.app
