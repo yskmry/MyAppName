@@ -1,38 +1,51 @@
 name: MyAppName
 options:
-    bundleIdPrefix: com.example.MyAppName # 👈 プレフィックスをアプリ名まで含める
+    bundleIdPrefix: com.example # 👈 Keep prefix generic. Final ID will be com.example.MyAppName
+    deploymentTarget:
+        macOS: "15.0"
+
 targets:
     MyAppName:
         type: application
         platform: macOS
-        deploymentTarget: "15.0"
         sources:
             - MyApp
         info:
             path: MyApp/Info.plist
         dependencies:
-            - target: MyAppNameWidget # 👈 ターゲット名を一工夫する
+            - target: MyAppNameWidget
+
         settings:
             base:
-                CODE_SIGNING_ALLOWED: "NO"
-                CODE_SIGNING_REQUIRED: "NO"
-                CODE_SIGNING_IDENTITY: ""
+                # ✅ ENABLE SIGNING
+                CODE_SIGNING_ALLOWED: "YES"
+                CODE_SIGNING_REQUIRED: "YES"
+
+                # ✅ USE YOUR LOCAL CERTIFICATE
+                CODE_SIGN_IDENTITY: "MyLocalDevCert"
+
+                # ✅ NO TEAM NEEDED FOR PRIVATE USE
+                DEVELOPMENT_TEAM: ""
+
                 ARCHS: "arm64"
                 ONLY_ACTIVE_ARCH: "NO"
 
-    # 👇 ターゲット名を変更（これで自動生成されるIDが com.example.MyAppName.MyAppNameWidget になります）
+                # Optional: Disable Sandbox for easier private testing
+                OTHER_SWIFT_FLAGS: "-D DEBUG"
+
     MyAppNameWidget:
         type: app-extension
         platform: macOS
-        deploymentTarget: "15.0"
         sources:
             - MyWidget
         info:
             path: MyWidget/Info.plist
         settings:
             base:
-                CODE_SIGNING_ALLOWED: "NO"
-                CODE_SIGNING_REQUIRED: "NO"
-                CODE_SIGNING_IDENTITY: ""
+                # ✅ ENABLE SIGNING FOR WIDGET TOO
+                CODE_SIGNING_ALLOWED: "YES"
+                CODE_SIGNING_REQUIRED: "YES"
+                CODE_SIGN_IDENTITY: "MyLocalDevCert"
+                DEVELOPMENT_TEAM: ""
                 ARCHS: "arm64"
                 ONLY_ACTIVE_ARCH: "NO"
